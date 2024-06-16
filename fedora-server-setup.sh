@@ -11,30 +11,32 @@ sleep 2
 # Update repos and groups
 echo "### Updating core repos ###"
 sleep 2
-sudo dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-sudo dnf groupupdate core -y
-sudo dnf install -y rpmfusion-free-release-tainted
-sudo dnf install  -y rpmfusion-nonfree-release-tainted
-sudo dnf install \*-firmware -y
-sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-sleep 2
-
-# Install necessary groups
+sudo dnf groupinstall -y "Fedora Server Edition" && \
 sudo dnf groupinstall -y "Container Management" && \
 sudo dnf groupinstall -y "Headless Management" && \
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && \
+sleep 2
 
 # Install base utilities
 echo "Installing base system utilities"
-sudo dnf install -y curl vim wget vim-syntastic git htop && \
+sudo dnf install -y \
+cockpit-pcp \
+cockpit-podman \
+cockpit-machines \
+curl \
+git \
+htop \
+vim \
+vim-syntastic \
+wget && \
 sleep 2
 
 # Enable system services
 echo "Enabling basic system services"
-sudo systemctl enable libvirtd && \
-sudo systemctl start libvirtd && \
-sudo systemctl enable cockpit && \
-sudo systemctl start cockpit && \
+sudo systemctl enable --now libvirtd && \
+sudo systemctl enable --now cockpit.socket && \
 sudo systemctl enable --now podman.socket &&\
+sudo firewall-cmd --permanent --zone=public --add-port=9090/tcp #Open cockpit port
 sleep 2
 
 # Install Tailscale
