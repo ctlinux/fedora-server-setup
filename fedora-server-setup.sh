@@ -5,7 +5,7 @@ echo "### Changing hostname ###"
 sleep 2
 echo "Enter the name of the workstation"
 sudo read hostname
-sudo echo "$hostname.localdomain" > /etc/hostname
+sudo echo "$hostname" > /etc/hostname
 sleep 2
 
 # Update repos and groups
@@ -41,7 +41,7 @@ sleep 2
 
 # Install Tailscale
 echo "Installing Tailscale"
-sudo dnf config-manager --add-repo -y https://pkgs.tailscale.com/stable/fedora/tailscale.repo && \
+sudo dnf config-manager --add-repo https://pkgs.tailscale.com/stable/fedora/tailscale.repo && \
 sudo dnf install tailscale -y && \
 sleep 2
 
