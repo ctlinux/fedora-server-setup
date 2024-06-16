@@ -19,15 +19,21 @@ sudo dnf install \*-firmware -y
 sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 sleep 2
 
+# Install necessary groups
+sudo dnf groupinstall -y "Container Management" && \
+sudo dnf groupinstall -y "Headless Management" && \
+
 # Install base utilities
 echo "Installing base system utilities"
-sudo dnf install -y cockpit curl vim wget vim-syntastic git podman htop && \
+sudo dnf install -y curl vim wget vim-syntastic git htop && \
 sleep 2
 
 # Enable system services
 echo "Enabling basic system services"
-sudo systemctl enable --now libvirtd && \
-sudo systemctl enable --now cockpit.socket && \
+sudo systemctl enable libvirtd && \
+sudo systemctl start libvirtd && \
+sudo systemctl enable cockpit && \
+sudo systemctl start cockpit && \
 sudo systemctl enable --now podman.socket &&\
 sleep 2
 
