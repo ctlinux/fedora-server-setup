@@ -1,0 +1,72 @@
+---
+- name: Fedora server configuration
+  become: true
+  gather_facts: true
+  hosts: "{{ target_host }}"
+  vars_prompt:
+    - name: target_host
+      prompt: "Enter the target host name defined in the inventory file"
+      private: false
+    - name: target_hostname
+      prompt: "Enter the desired hostname for the target host"
+      private: false
+  vars_files:
+    - fedora-server-vars.yaml
+  tasks:
+    - name: Setting hostname
+      ansible.builtin.hostname:
+        name: "{{ target_hostname }}"
+        use: systemd
+
+    - name: Update RHEL,Fedora,CentOS hosts
+      ansible.builtin.dnf:
+        name: '*'
+        state: latest
+        update_cache: true
+      retries: 4
+      when:
+        - ansible_os_family == "RedHat"
+      register: rhel_update_status
+
+    - name: Reboot all updated machines and wait for it to boot
+      ansible.builtin.reboot:
+        reboot_timeout: 600
+        test_command: "whoami"
+      when: rhel_update_status.changed
+
+    - name: Add the Tailscale repository
+      ansible.builtin.get_url:
+        url: https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+        dest: /etc/yum.repos.d/tailscale.repo
+        mode: '0644'
+
+    - name: Install required packages
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: present
+        update_cache: true
+      loop:
+        - "{{ dnf_packages }}"
+        - "{{ dnf_groups }}"
+
+    - name: Add the flathub flatpak repository
+      community.general.flatpak_remote:
+        name: flathub
+        state: present
+        flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+
+    - name: Allow cockpit in firewalld
+      ansible.posix.firewalld:
+        port: 9090/udp
+        zone: public
+        permanent: true
+        state: enabled
+
+    - name: Enable system services
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+      with_items:
+        - "{{ sys_services }}"
