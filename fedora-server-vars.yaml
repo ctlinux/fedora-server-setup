@@ -1,0 +1,23 @@
+---
+dnf_packages:
+  - cockpit-pcp
+  - cockpit-podman
+  - cockpit-machines
+  - curl
+  - git
+  - htop
+  - vim
+  - vim-syntastic
+  - wget
+  - flatpak
+  - tailscale
+dnf_groups:
+  - '@Fedora Server Edition'
+  - '@Container Management'
+  - '@Headless Management'
+  - '@virtualization'
+sys_services:
+  - libvirtd
+  - cockpit.socket
+  - podman.socket
+  - tailscaled
